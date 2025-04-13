@@ -72,14 +72,14 @@ def test_get_lanzamientos(cliente, db_launch):
     assert response.status_code == 200
     launches = response.json()
     assert len(launches) == 1
-    assert launches[0]["launch_id"] == db_launch.launch_id
+    assert launches[0]["id_lanzamiento"] == db_launch.id_lanzamiento
 
 def test_get_lanzamientos_id(cliente, db_launch):
     """Test para obtener un lanzamiento por ID"""
-    response = cliente.get(f"/launches/{db_launch.launch_id}")
+    response = cliente.get(f"/launches/{db_launch.id_lanzamiento}")
     assert response.status_code == 200
     launch = response.json()
-    assert launch["launch_id"] == db_launch.launch_id
+    assert launch["id_lanzamiento"] == db_launch.id_lanzamiento
     assert launch["mission_name"] == db_launch.mission_name
 
 def test_get_lanzamientos_id_no_existe(cliente):
@@ -94,7 +94,7 @@ def test_get_proximos_lanzamientos(cliente, db_launch):
     assert response.status_code == 200
     launches = response.json()
     assert len(launches) == 1
-    assert launches[0]["launch_id"] == db_launch.launch_id
+    assert launches[0]["id_lanzamiento"] == db_launch.id_lanzamiento
 
 def test_get_lanzamientos_pasados(cliente, test_db, db_launch):
     """Test para obtener lanzamientos pasados"""
@@ -106,7 +106,7 @@ def test_get_lanzamientos_pasados(cliente, test_db, db_launch):
     assert response.status_code == 200
     launches = response.json()
     assert len(launches) == 1
-    assert launches[0]["launch_id"] == db_launch.launch_id
+    assert launches[0]["id_lanzamiento"] == db_launch.id_lanzamiento
 
 def test_obtener_lanzamientos():
     """Test para obtener todos los lanzamientos"""

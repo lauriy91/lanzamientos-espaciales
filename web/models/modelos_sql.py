@@ -35,7 +35,6 @@ class ModeloLanzamiento(Base):
 
     @classmethod
     def desde_dict(cls, datos: dict):
-        """Crear una instancia del modelo desde un diccionario"""
         return cls(
             id_lanzamiento=datos.get("id_lanzamiento"),
             nombre_mision=datos.get("nombre_mision"),
