@@ -16,63 +16,63 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-class InformanteLanzamientosStack(Stack):
+class PilaInformanteLanzamientos(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         # Obtener variables de entorno
         vpc_id = os.getenv('VPC_ID', 'vpc-0123456789abcdef0')
-        table_name = os.getenv('LAUNCHES_TABLE', 'spacex_launches_table')
-        repository_name = os.getenv('ECR_REPOSITORY', 'spacex-lanzamientos')
+        nombre_tabla = os.getenv('TABLA_LANZAMIENTOS', 'tabla_lanzamientos_spacex')
+        nombre_repositorio = os.getenv('REPOSITORIO_ECR', 'lanzamientos-spacex')
 
         tabla_lanzamientos = dynamodb.Table(
             self,
-            "LaunchesTable",
-            table_name=table_name,
+            "TablaLanzamientos",
+            nombre_tabla=nombre_tabla,
             partition_key=dynamodb.Attribute(
-                name="launch_id", type=dynamodb.AttributeType.STRING
+                name="id_lanzamiento", type=dynamodb.AttributeType.STRING
             ),
             billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
             removal_policy=RemovalPolicy.DESTROY,
         )
 
-        spacex_lambda = lambda_.Function(
+        lambda_spacex = lambda_.Function(
             self,
-            "SpacexLambda",
+            "LambdaSpacex",
             runtime=lambda_.Runtime.PYTHON_3_9,
-            handler="spacex_lambda.manejador_lambda",
+            handler="manejador_lambda.lambda_handler",
             code=lambda_.Code.from_asset("lambda"),
-            environment={"LAUNCHES_TABLE": tabla_lanzamientos.table_name},
+            environment={"TABLA_LANZAMIENTOS": tabla_lanzamientos.nombre_tabla},
             timeout=Duration.minutes(5),
         )
 
-        tabla_lanzamientos.grant_read_write_data(spacex_lambda)
+        tabla_lanzamientos.grant_read_write_data(lambda_spacex)
 
         cluster = ecs.Cluster(
             self,
-            "SpacexCluster",
+            "ClusterSpacex",
             vpc=ec2.Vpc.from_lookup(self, "VPC", vpc_id=vpc_id),
         )
 
-        repository = ecr.Repository(
+        repositorio = ecr.Repository(
             self,
-            "SpacexRepository",
-            repository_name=repository_name,
+            "RepositorioSpacex",
+            nombre_repositorio=nombre_repositorio,
             removal_policy=RemovalPolicy.DESTROY,
         )
 
-        fargate_service = ecs_patterns.ApplicationLoadBalancedFargateService(
+        servicio_fargate = ecs_patterns.ApplicationLoadBalancedFargateService(
             self,
-            "SpacexService",
+            "ServicioSpacex",
             cluster=cluster,
             memory_limit_mib=512,
             cpu=256,
             desired_count=2,
             task_image_options=ecs_patterns.ApplicationLoadBalancedTaskImageOptions(
-                image=ecs.ContainerImage.from_ecr_repository(repository),
+                image=ecs.ContainerImage.from_ecr_repository(repositorio),
                 container_port=8000,
-                environment={"LAUNCHES_TABLE": tabla_lanzamientos.table_name},
+                environment={"TABLA_LANZAMIENTOS": tabla_lanzamientos.nombre_tabla},
             ),
         )
 
-        tabla_lanzamientos.grant_read_data(fargate_service.task_definition.task_role)
+        tabla_lanzamientos.grant_read_data(servicio_fargate.task_definition.task_role)

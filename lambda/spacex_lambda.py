@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Dict, List, Any
 
 dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table(os.environ['LAUNCHES_TABLE'])
+tabla = dynamodb.Table(os.environ['TABLA_LANZAMIENTOS'])
 
 def obtener_lanzamientos_spacex() -> List[Dict[str, Any]]:
     url = "https://api.spacexdata.com/v4/launches"
@@ -16,33 +16,40 @@ def obtener_lanzamientos_spacex() -> List[Dict[str, Any]]:
 
 def procesar_datos_lanzamiento(lanzamiento: Dict[str, Any]) -> Dict[str, Any]:
     return {
-        'launch_id': lanzamiento['id'],
-        'mission_name': lanzamiento['name'],
-        'rocket_name': lanzamiento['rocket']['name'],
-        'launch_date': lanzamiento['date_utc'],
-        'status': 'success' if lanzamiento['success'] else 'failed',
-        'launch_site': lanzamiento['launchpad']['name'],
-        'details': lanzamiento.get('details', ''),
-        'payloads': [p['id'] for p in lanzamiento.get('payloads', [])],
+        'id_lanzamiento': lanzamiento['id'],
+        'nombre_mision': lanzamiento['name'],
+        'fecha_lanzamiento': lanzamiento['date_utc'],
+        'nombre_cohete': lanzamiento['rocket']['name'],
+        'sitio_lanzamiento': lanzamiento['launchpad']['name'],
+        'lanzamiento_exitoso': lanzamiento.get('success', False),
+        'proximo': lanzamiento['upcoming'],
+        'detalles': lanzamiento.get('details', ''),
+        'enlaces': {
+            'webcast': lanzamiento.get('links', {}).get('webcast', ''),
+            'articulo': lanzamiento.get('links', {}).get('article', ''),
+            'wikipedia': lanzamiento.get('links', {}).get('wikipedia', '')
+        },
         'updated_at': datetime.utcnow().isoformat()
     }
 
-def manejador_lambda(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+def lambda_handler(event, context):
+    """Manejador principal de la función Lambda"""
     try:
-        lanzamientos = obtener_lanzamientos_spacex()
+        # Obtener datos de la API de SpaceX
+        respuesta = requests.get('https://api.spacexdata.com/v4/launches')
+        lanzamientos = respuesta.json()
         
-        lanzamientos_procesados = []
+        # Procesar cada lanzamiento
         for lanzamiento in lanzamientos:
-            lanzamiento_procesado = procesar_datos_lanzamiento(lanzamiento)
+            item = procesar_datos_lanzamiento(lanzamiento)
             
-            table.put_item(Item=lanzamiento_procesado)
-            lanzamientos_procesados.append(lanzamiento_procesado)
+            # Guardar en DynamoDB
+            tabla.put_item(Item=item)
         
         return {
             'statusCode': 200,
             'body': json.dumps({
-                'message': f'Procesados {len(lanzamientos_procesados)} lanzamientos exitosamente',
-                'launches': lanzamientos_procesados
+                'mensaje': f'Se procesaron {len(lanzamientos)} lanzamientos exitosamente'
             })
         }
         
@@ -50,6 +57,6 @@ def manejador_lambda(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 500,
             'body': json.dumps({
-                'error': str(e)
+                'error': f'Error al procesar los lanzamientos: {str(e)}'
             })
         } 
