@@ -10,14 +10,14 @@ class LanzamientosEspacialesService:
         self.dynamodb = boto3.resource("dynamodb")
         self.table = self.dynamodb.Table(os.environ["LAUNCHES_TABLE"])
 
-    async def get_all_launches(self, db: Any) -> List[Dict[str, Any]]:
+    async def get_lanzamientos_services(self, db: Any) -> List[Dict[str, Any]]:
         try:
             response = self.table.scan()
             return response.get("Items", [])
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
-    async def get_launch_by_id(self, db: Any, launch_id: str) -> Dict[str, Any]:
+    async def get_lanzamiento_id_services(self, db: Any, launch_id: str) -> Dict[str, Any]:
         try:
             response = self.table.get_item(Key={"launch_id": launch_id})
             if "Item" not in response:
@@ -26,7 +26,7 @@ class LanzamientosEspacialesService:
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
-    async def get_rocket_statistics(self, db: Any) -> Dict[str, Any]:
+    async def get_estadisticas_cohetes_services(self, db: Any) -> Dict[str, Any]:
         try:
             response = self.table.scan()
             launches = response.get("Items", [])
@@ -46,7 +46,7 @@ class LanzamientosEspacialesService:
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
-    async def get_launch_status_statistics(self, db: Any) -> Dict[str, Any]:
+    async def get_estadisticas_estado_services(self, db: Any) -> Dict[str, Any]:
         try:
             response = self.table.scan()
             launches = response.get("Items", [])
@@ -70,7 +70,7 @@ class LanzamientosEspacialesService:
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
-    async def get_upcoming_launches(self, db: Any) -> List[Dict[str, Any]]:
+    async def get_proximos_lanzamientos_services(self, db: Any) -> List[Dict[str, Any]]:
         try:
             response = self.table.scan()
             launches = response.get("Items", [])
