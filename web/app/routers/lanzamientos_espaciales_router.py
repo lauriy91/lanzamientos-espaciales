@@ -1,0 +1,53 @@
+from fastapi import APIRouter, Query, Depends, HTTPException
+from typing import List, Dict, Any
+from datetime import datetime
+from database_config.connection import get_db
+from app.services.lanzamientos_espaciales_service import LanzamientosEspacialesService
+
+router = APIRouter()
+lanzamientos_service = LanzamientosEspacialesService()
+
+
+@router.get(
+    "/",
+    response_model=List[Dict[str, Any]],
+    description="Obtiene todos los lanzamientos almacenados.",
+)
+async def get_lanzamientos(db: Any = Depends(get_db)):
+    return await lanzamientos_service.get_all_launches(db)
+
+
+@router.get(
+    "/{launch_id}",
+    response_model=Dict[str, Any],
+    description="Obtiene un lanzamiento específico por ID.",
+)
+async def get_lanzamiento(launch_id: str, db: Any = Depends(get_db)):
+    return await lanzamientos_service.get_launch_by_id(db, launch_id)
+
+
+@router.get(
+    "/estadisticas/cohetes",
+    response_model=Dict[str, Any],
+    description="Obtiene estadísticas de lanzamientos por cohete.",
+)
+async def get_estadisticas_cohetes(db: Any = Depends(get_db)):
+    return await lanzamientos_service.get_rocket_statistics(db)
+
+
+@router.get(
+    "/estadisticas/estado",
+    response_model=Dict[str, Any],
+    description="Obtiene estadísticas de lanzamientos por estado.",
+)
+async def get_estadisticas_estado(db: Any = Depends(get_db)):
+    return await lanzamientos_service.get_launch_status_statistics(db)
+
+
+@router.get(
+    "/proximos",
+    response_model=List[Dict[str, Any]],
+    description="Obtiene los próximos lanzamientos programados.",
+)
+async def get_proximos_lanzamientos(db: Any = Depends(get_db)):
+    return await lanzamientos_service.get_upcoming_launches(db)
