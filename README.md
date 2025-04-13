@@ -144,28 +144,28 @@ cdk deploy
 
 ### POST /lanzamientos/sincronizar
 Sincronización de datos: obtiene el número de lanzamientos hasta la fecha
-image.png
+![alt text](image-5.png)
 
 ### GET /lanzamientos/
 Obtiene todos los lanzamientos hechos hasta la fecha
-image.png
+![alt text](image-4.png)
 
 ### GET /lanzamientos/{id_lanzamiento}
 Entrega información detallada del lanzamiento, según su ID
-image.png
+![alt text](image-1.png)
 
 ### GET /lanzamientos_proximos/proximos
 Obtiene los próximos lanzamientos
-image.png
+![alt text](image-2.png)
 
 ### GET /lanzamientos_pasados/pasados
 Obtiene los lanzamientos que ya han pasado
-image.png
+![alt text](image-3.png)
 
 ### GET /lanzamientos/estadisticas/cohetes
 Estadisticas de los cohetes
-image.png
+![alt text](image-6.png)
 
 ### GET /lanzamientos/estadisticas/estado
 Estadisticas generales del estado de los lanzamientos
-image.png
+![alt text](image.png)
