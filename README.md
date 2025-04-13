@@ -1,6 +1,14 @@
 # SpaceX - Lanzamientos espaciales
 
-Este proyecto es una aplicación que muestra información sobre los lanzamientos de SpaceX, utilizando una arquitectura serverless en AWS.
+Este proyecto es una aplicación que muestra información sobre los lanzamientos espaciales que realiza SpaceX, utilizando una arquitectura serverless en AWS y clean architecture, te ofrece la siguiente información detallada.
+
+* nombre de la mision
+* fecha de lanzamiento
+* identificación del cohete
+* sitio de lanzamiento
+* Si fué exitoso o no
+* Si tendrá un próximo lanzamiento
+* Enlaces para profundizar en un lanzamiento en especifico.
 
 
 ## Especificaciones tecnicas
@@ -98,10 +106,13 @@ uvicorn web.main:app --reload
 
 ## Endpoints
 
-- GET /launches - Listar todos los lanzamientos
-- GET /launches/{id} - Obtener detalles de un lanzamiento
-- GET /launches/upcoming - Próximos lanzamientos
-- GET /launches/past - Lanzamientos pasados
+- GET /lanzamientos/ - Listar todos los lanzamientos
+- GET /lanzamientos/{id_lanzamiento} - Obtener detalles de un lanzamiento
+- GET /lanzamientos/estadisticas/cohetes - Estadísticas de lanzamientos por cohete
+- GET /lanzamientos/estadisticas/estado - Estadísticas de lanzamientos por estado
+- GET /lanzamientos/proximos - Próximos lanzamientos
+- GET /lanzamientos/pasados - Lanzamientos pasados
+- POST /lanzamientos/sincronizar - Sincroniza los datos con la API de SpaceX
 
 
 ## Testing
@@ -128,3 +139,33 @@ El despliegue está automatizado mediante GitHub Actions. Cada push a la rama pr
 cd infrastructure
 cdk deploy
 ```
+
+## Evidencia
+
+### POST /lanzamientos/sincronizar
+Sincronización de datos: obtiene el número de lanzamientos hasta la fecha
+image.png
+
+### GET /lanzamientos/
+Obtiene todos los lanzamientos hechos hasta la fecha
+image.png
+
+### GET /lanzamientos/{id_lanzamiento}
+Entrega información detallada del lanzamiento, según su ID
+image.png
+
+### GET /lanzamientos_proximos/proximos
+Obtiene los próximos lanzamientos
+image.png
+
+### GET /lanzamientos_pasados/pasados
+Obtiene los lanzamientos que ya han pasado
+image.png
+
+### GET /lanzamientos/estadisticas/cohetes
+Estadisticas de los cohetes
+image.png
+
+### GET /lanzamientos/estadisticas/estado
+Estadisticas generales del estado de los lanzamientos
+image.png

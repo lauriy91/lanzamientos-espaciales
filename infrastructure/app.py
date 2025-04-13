@@ -34,6 +34,8 @@ class PilaInformanteLanzamientos(Stack):
             ),
             billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
             removal_policy=RemovalPolicy.DESTROY,
+            point_in_time_recovery=False,
+            server_side_encryption=False,
         )
 
         lambda_spacex = lambda_.Function(
@@ -43,7 +45,8 @@ class PilaInformanteLanzamientos(Stack):
             handler="manejador_lambda.lambda_handler",
             code=lambda_.Code.from_asset("lambda"),
             environment={"TABLA_LANZAMIENTOS": tabla_lanzamientos.nombre_tabla},
-            timeout=Duration.minutes(5),
+            timeout=Duration.minutes(1),
+            memory_size=128,
         )
 
         tabla_lanzamientos.grant_read_write_data(lambda_spacex)
@@ -52,6 +55,7 @@ class PilaInformanteLanzamientos(Stack):
             self,
             "ClusterSpacex",
             vpc=ec2.Vpc.from_lookup(self, "VPC", vpc_id=vpc_id),
+            container_insights=False,
         )
 
         repositorio = ecr.Repository(
@@ -59,15 +63,17 @@ class PilaInformanteLanzamientos(Stack):
             "RepositorioSpacex",
             nombre_repositorio=nombre_repositorio,
             removal_policy=RemovalPolicy.DESTROY,
+            lifecycle_rules=[],
+            image_scan_on_push=False,
         )
 
         servicio_fargate = ecs_patterns.ApplicationLoadBalancedFargateService(
             self,
             "ServicioSpacex",
             cluster=cluster,
-            memory_limit_mib=512,
-            cpu=256,
-            desired_count=2,
+            memory_limit_mib=256,
+            cpu=128,
+            desired_count=1,
             task_image_options=ecs_patterns.ApplicationLoadBalancedTaskImageOptions(
                 image=ecs.ContainerImage.from_ecr_repository(repositorio),
                 container_port=8000,
