@@ -1,58 +1,84 @@
-Sistema de seguimiento de lanzamientos espaciales de SpaceX que utiliza AWS para procesamiento y almacenamiento de datos.
+# SpaceX - Lanzamientos espaciales
 
-## Arquitectura
+Este proyecto es una aplicación que muestra información sobre los lanzamientos de SpaceX, utilizando una arquitectura serverless en AWS.
 
-El sistema está compuesto por los siguientes componentes:
 
-- **API Lambda**: Función Python que obtiene datos de la API pública de SpaceX
-- **DynamoDB**: Base de datos para almacenar información de lanzamientos
-- **Aplicación Web**: Frontend desplegado en ECS Fargate
-- **Pipeline CI/CD**: Automatización con GitHub Actions
+## Especificaciones tecnicas
+- Programming Language: Python
+- Database: Dynamo
+- ORM: sqlAlchemy
+- Libraries:
+  - boto3 - conexiones a la nube
+  - aws_cdk - servicios aws
+  - fastapi para desarrollo de API
+- uvicorn levantar servicio FastAPI
+- Modulos necesarios y librerias para la aplicacion (in [requirements.txt](./requirements.txt)).
 
-## Requisitos Previos
 
-- Python 3.9+
+## Modules
+spacex_project/
+├── infrastructure/           # Código de infraestructura CDK
+│   └── app.py               # Stack principal de CDK
+├── lambda/                  # Código de la función Lambda
+├── web/                    # Aplicación web FastAPI
+├── tests/                  # Tests unitarios y de integración
+├── .github/                # Configuración de GitHub Actions
+│   └── workflows/
+├── .env                    # Variables de entorno
+├── requirements.txt        # Dependencias del proyecto
+└── Dockerfile             # Configuración para construir la imagen Docker
+
+
+## Requisitos
+
+- Python 3.9 o superior
 - AWS CLI configurado
-- Docker
-- Cuenta de GitHub
-- Acceso a servicios AWS (DynamoDB, Lambda, ECS, ECR)
-
-## Estructura del Proyecto
-
-lanzamientos_espaciales_project/
-├── lambda/                 
-├── web/                   
-├── infrastructure/        
-├── tests/                
-└── .github/              
+- CDK CLI instalado
+- Docker (para desarrollo local)
 
 
-## Configuración Local
-
-1. Clonar el repositorio
-2. Instalar dependencias:
-   python -m venv .venv
-   .venv\Scripts\activate
-   pip install -r requirements.txt
-
-3. Configurar variables de entorno:
-   cp .env.example .env
+## Project Initialization
+- Clonar el repositorio:
+  git clone https://github.com/lauriy91/lanzamientos-espaciales.git
+- Crear entorno virtual
+  python -m venv venv
+  source venv/bin/activate
+- Instalar dependencias
+  pip install -r requirements.txt
 
 
-## Desarrollo
+## Endpoints
 
-- Ejecutar pruebas: `pytest`
-- Ejecutar aplicación local: `uvicorn web.main:app --reload`
-- Construir imagen Docker: `docker build -t lanzamientos-espaciales .`
+- GET /sales/product
+- GET /sales/day
+- GET /sales/category
+- GET /sales/outliers
+
+
+## Como levantar el proyecto:
+- cd lanzamiento_espaciales
+- venv\Scripts\activate
+- uvicorn web.main:app --reload
+
+
+## Construir la imagen Docker
+- docker build -t spacex-lanzamientos .
+
+
+## Ejecutar test
+- pytest
+
 
 ## Despliegue
 
 El despliegue está automatizado mediante GitHub Actions. Cada push a la rama principal activa:
 1. Pruebas automatizadas
-2. Construcción de imagen Docker
-3. Despliegue en ECS Fargate
-4. Actualización de Lambda
+2. Despliegue de la función Lambda
+3. Construcción y push de la imagen Docker a ECR
+4. Actualización del servicio ECS
 
-## Documentación API - Swagger
-
-La documentación de la API está disponible en `/docs` cuando la aplicación está en ejecución.
+## Para desplegar manualmente la infraestructura:
+```bash
+cd infrastructure
+cdk deploy
+```

@@ -11,15 +11,24 @@ from aws_cdk import (
     Stack,
 )
 from constructs import Construct
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 class InformanteLanzamientosStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
+        # Obtener variables de entorno
+        vpc_id = os.getenv('VPC_ID', 'vpc-0123456789abcdef0')
+        table_name = os.getenv('LAUNCHES_TABLE', 'spacex_launches_table')
+        repository_name = os.getenv('ECR_REPOSITORY', 'spacex-lanzamientos')
+
         tabla_lanzamientos = dynamodb.Table(
             self,
             "LaunchesTable",
+            table_name=table_name,
             partition_key=dynamodb.Attribute(
                 name="launch_id", type=dynamodb.AttributeType.STRING
             ),
@@ -42,13 +51,13 @@ class InformanteLanzamientosStack(Stack):
         cluster = ecs.Cluster(
             self,
             "SpacexCluster",
-            vpc=ec2.Vpc.from_lookup(self, "VPC", vpc_id="vpc-xxxxxx"),
+            vpc=ec2.Vpc.from_lookup(self, "VPC", vpc_id=vpc_id),
         )
 
         repository = ecr.Repository(
             self,
             "SpacexRepository",
-            repository_name="spacex-tracker",
+            repository_name=repository_name,
             removal_policy=RemovalPolicy.DESTROY,
         )
 
