@@ -13,6 +13,10 @@ env:
   SERVICIO_ECS: servicio-spacex
   NOMBRE_CONTENEDOR: lanzamientos-spacex
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -61,7 +65,6 @@ jobs:
   deploy-web:
     needs: deploy-lambda
     runs-on: ubuntu-latest
-    environment: production
     steps:
     - uses: actions/checkout@v2
     

@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+
+import aws_cdk as cdk
 from aws_cdk import (
     aws_dynamodb as dynamodb,
     aws_ecs_patterns as ecs_patterns,
@@ -25,48 +28,58 @@ class PilaInformanteLanzamientos(Stack):
         nombre_tabla = os.getenv('TABLA_LANZAMIENTOS', 'tabla_lanzamientos_spacex')
         nombre_repositorio = os.getenv('REPOSITORIO_ECR', 'lanzamientos-spacex')
 
+        # Tabla DynamoDB
         tabla_lanzamientos = dynamodb.Table(
             self,
             "TablaLanzamientos",
-            nombre_tabla=nombre_tabla,
+            table_name=nombre_tabla,
             partition_key=dynamodb.Attribute(
-                name="id_lanzamiento", type=dynamodb.AttributeType.STRING
+                name="id_lanzamiento", 
+                type=dynamodb.AttributeType.STRING
             ),
-            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
+            billing_mode=dynamodb.BillingMode.PROVISIONED,
+            read_capacity=5,
+            write_capacity=5,
             removal_policy=RemovalPolicy.DESTROY,
             point_in_time_recovery=False,
             server_side_encryption=False,
         )
 
+        # Lambda configuración
         lambda_spacex = lambda_.Function(
             self,
             "LambdaSpacex",
             runtime=lambda_.Runtime.PYTHON_3_9,
             handler="manejador_lambda.lambda_handler",
             code=lambda_.Code.from_asset("lambda"),
-            environment={"TABLA_LANZAMIENTOS": tabla_lanzamientos.nombre_tabla},
+            environment={"TABLA_LANZAMIENTOS": tabla_lanzamientos.table_name},
             timeout=Duration.minutes(1),
             memory_size=128,
+            reserved_concurrent_executions=1,
         )
 
         tabla_lanzamientos.grant_read_write_data(lambda_spacex)
 
+        # Cluster ECS configuración
         cluster = ecs.Cluster(
             self,
             "ClusterSpacex",
             vpc=ec2.Vpc.from_lookup(self, "VPC", vpc_id=vpc_id),
             container_insights=False,
+            enable_fargate_capacity_providers=False,
         )
 
+        # Repositorio ECR
         repositorio = ecr.Repository(
             self,
             "RepositorioSpacex",
-            nombre_repositorio=nombre_repositorio,
+            repository_name=nombre_repositorio,
             removal_policy=RemovalPolicy.DESTROY,
             lifecycle_rules=[],
             image_scan_on_push=False,
         )
 
+        # Servicio Fargate
         servicio_fargate = ecs_patterns.ApplicationLoadBalancedFargateService(
             self,
             "ServicioSpacex",
@@ -77,8 +90,15 @@ class PilaInformanteLanzamientos(Stack):
             task_image_options=ecs_patterns.ApplicationLoadBalancedTaskImageOptions(
                 image=ecs.ContainerImage.from_ecr_repository(repositorio),
                 container_port=8000,
-                environment={"TABLA_LANZAMIENTOS": tabla_lanzamientos.nombre_tabla},
+                environment={"TABLA_LANZAMIENTOS": tabla_lanzamientos.table_name},
             ),
+            assign_public_ip=True,
+            public_load_balancer=True,
         )
 
         tabla_lanzamientos.grant_read_data(servicio_fargate.task_definition.task_role)
+
+app = cdk.App()
+PilaInformanteLanzamientos(app, "PilaInformanteLanzamientos")
+
+app.synth()

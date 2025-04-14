@@ -1,4 +1,4 @@
-FROM cgr.dev/chainguard/python:latest-dev
+FROM python:3.13-slim
 
 # Directorio de trabajo
 WORKDIR /app
